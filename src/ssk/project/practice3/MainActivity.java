@@ -1,11 +1,29 @@
 package ssk.project.practice3;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
+
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.ClientProtocolException;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.methods.HttpRequestBase;
+import org.apache.http.entity.StringEntity;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.params.BasicHttpParams;
+
 import android.app.ListActivity;
 import android.content.Context;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.util.Base64;
 import android.util.Log;
 import android.widget.ArrayAdapter;
 
@@ -71,6 +89,73 @@ public class MainActivity extends ListActivity {
 				}
 			}
 			return twits;
+		}
+		
+		private Authenticated jsonToAuthenticated(String raw) {
+			Authenticated auth = null;
+			if (raw != null && raw.length() > 0) {
+				try {
+					Gson gson = new Gson();
+					auth = gson.fromJson(raw, Authenticated.class);
+				} catch (IllegalStateException ex) {
+					ex.printStackTrace();
+				}
+			}
+			return auth;
+		}
+		
+		private String getResponseBody(HttpRequestBase request) {
+			StringBuilder sb = new StringBuilder();
+			try {
+				DefaultHttpClient client = new DefaultHttpClient(new BasicHttpParams());
+				HttpResponse response = client.execute(request);
+				int statusCode = response.getStatusLine().getStatusCode();
+				String reason = response.getStatusLine().getReasonPhrase();
+				
+				if (statusCode == 200) {
+					HttpEntity entity = response.getEntity();
+					InputStream is = entity.getContent();
+					BufferedReader bf = new BufferedReader(new InputStreamReader(is));
+					String line = "";
+					while ((line = bf.readLine()) != null) {
+						sb.append(line);
+					}
+					bf.close();
+				} else {
+					sb.append(reason);
+				}
+			} catch (UnsupportedEncodingException ex) {
+			} catch (ClientProtocolException ex1) {			
+			} catch (IOException ex2) {		
+			}
+			return sb.toString();
+		}
+		
+		private String getTwitterStream(String screenName) {
+			String results = null;
+			try {
+				String urlApiKey = URLEncoder.encode(CONSUMER_KEY, "UTF-8");
+				String urlSecretKey = URLEncoder.encode(CONSUMER_SECRET, "UTF-8");
+				String combined = urlApiKey + ":" + urlSecretKey;
+				String base64Encoded = Base64.encodeToString(combined.getBytes(), Base64.NO_WRAP);
+				
+				HttpPost post = new HttpPost(TwitterTokenURL);
+				post.setHeader("Authorization", "Basic " + base64Encoded);
+				post.setHeader("Content-Type", "application/x-www-form-urlencoded;charset=UTF-8");
+				post.setEntity(new StringEntity("grant_type=client_credentials"));
+				String raw = getResponseBody(post);
+				Authenticated auth = jsonToAuthenticated(raw);
+				
+				if (auth != null && auth.token_type.equals("bearer")) {
+					HttpGet get = new HttpGet(TwitterStreamURL + screenName);
+					get.setHeader("Authorization", "Bearer " + auth.access_token);
+					get.setHeader("Content-Type", "application/json");
+					results = getResponseBody(get);
+				}
+			} catch (UnsupportedEncodingException ex) {
+				ex.printStackTrace();
+			}
+			return results;
 		}
 		
 	}
