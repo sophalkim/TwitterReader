@@ -5,7 +5,7 @@ import android.os.Bundle;
 
 public class MainActivity extends ListActivity {
 
-	/*
+	/**
 	 * Name of Twitter account that you are following.
 	 */
 	String screenName = "maroon5";
@@ -16,7 +16,7 @@ public class MainActivity extends ListActivity {
 		downloadTweets();
 	}
 	
-	/*
+	/**
 	 * Checks for Internet Connection, then Creates new DownloadTask for downloading
 	 * Tweets.
 	 */
