@@ -36,10 +36,19 @@ public class MainActivity extends ListActivity {
 	}
 	
 	private class DownloadTwitterTask extends AsyncTask<String, Void, String> {
-
+		
+		final static String CONSUMER_KEY = "CIVZ9ru4o1OxePUeOlJi4qYV5";
+		final static String CONSUMER_SECRET = "sSzDMSHp3dxsQuKGiXNqje8FcNX7kNFFGTWyruhMsABG5ai2jO";
+		final static String TwitterTokenURL = "https://api.twitter.com/oauth2/token";
+		final static String TwitterStreamURL = "https://api.twitter.com/1.1/statuses/user_timeline.json?screen_name=";
+		
 		@Override
-		protected String doInBackground(String... params) {
-			return null;
+		protected String doInBackground(String... screenNames) {
+			String result = null;
+			if (screenNames != null && screenNames.length > 0) {
+				result =  getTwitterStream(screenNames[0]);
+			}
+			return result;
 		}
 		
 	}
