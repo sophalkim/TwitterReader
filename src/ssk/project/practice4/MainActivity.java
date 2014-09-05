@@ -13,7 +13,7 @@ public class MainActivity extends ListActivity {
 	/**
 	 * Name of Twitter account that you are following.
 	 */
-	String screenName = "maroon5";
+	String screenName = "katyperry";
 	
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
